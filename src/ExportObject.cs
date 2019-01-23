@@ -68,9 +68,11 @@ namespace DBus
 		internal static MethodCaller GetMCaller (MethodInfo mi)
 		{
 			MethodCaller mCaller;
-			if (!mCallers.TryGetValue (mi, out mCaller)) {
-				mCaller = TypeImplementer.GenCaller (mi);
-				mCallers[mi] = mCaller;
+			lock (mCallers) {
+				if (!mCallers.TryGetValue (mi, out mCaller)) {
+					mCaller = TypeImplementer.GenCaller (mi);
+					mCallers[mi] = mCaller;
+				}
 			}
 			return mCaller;
 		}
@@ -91,11 +93,7 @@ namespace DBus
 				return;
 			}
 
-			MethodCaller mCaller;
-			if (!mCallers.TryGetValue (mi, out mCaller)) {
-				mCaller = TypeImplementer.GenCaller (mi);
-				mCallers[mi] = mCaller;
-			}
+			MethodCaller mCaller = GetMCaller (mi);
 
 			Signature inSig, outSig;
 			bool hasDisposableList;
